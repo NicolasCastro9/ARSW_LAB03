@@ -19,24 +19,22 @@ public class Consumer extends Thread{
     public Consumer(Queue<Integer> queue){
         this.queue=queue;        
     }
-    
     @Override
     public void run() {
         while (true) {
-                try {
-                    //el consumidor consume muy lentamente ya que tiene un
-                    //periodo de espera de 6 segundos
-                    Thread.sleep(6000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-            synchronized(queue){                
-                if (queue.size() > 0) { 
-                    int elem=queue.poll();
-                    System.out.println("Consumer consumes "+elem);                                
-                }
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } 
+        synchronized(queue){
+            if(queue.size() > 0){
+                int elem = queue.poll();
+                System.out.println("Consumer consumes " + elem);
             }
         }
     }
+
+    }
 }
+

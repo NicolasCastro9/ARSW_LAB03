@@ -26,6 +26,7 @@ public class ControlFrame extends JFrame {
 
     private static final int DEFAULT_IMMORTAL_HEALTH = 100;
     private static final int DEFAULT_DAMAGE_VALUE = 10;
+    private volatile boolean stopSimulation = false;
 
     private JPanel contentPane;
 
@@ -68,7 +69,7 @@ public class ControlFrame extends JFrame {
 
         final JButton btnStart = new JButton("Start");
         btnStart.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
+            public synchronized void actionPerformed(ActionEvent e) {
 
                 immortals = setupInmortals();
 
@@ -86,31 +87,29 @@ public class ControlFrame extends JFrame {
 
         JButton btnPauseAndCheck = new JButton("Pause and check");
         btnPauseAndCheck.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
+            public synchronized void actionPerformed(ActionEvent e) {
 
-                /*
-				 * COMPLETAR
-                 */
                 int sum = 0;
                 for (Immortal im : immortals) {
                     sum += im.getHealth();
+                    im.pause();
                 }
 
                 statisticsLabel.setText("<html>"+immortals.toString()+"<br>Health sum:"+ sum);
-                
-                
-
             }
         });
+
+
+
         toolBar.add(btnPauseAndCheck);
 
         JButton btnResume = new JButton("Resume");
 
         btnResume.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                /**
-                 * IMPLEMENTAR
-                 */
+            public synchronized void actionPerformed(ActionEvent e) {
+                for(Immortal im: immortals){
+                    im.resumes();
+                }
 
             }
         });
@@ -125,9 +124,24 @@ public class ControlFrame extends JFrame {
         toolBar.add(numOfImmortals);
         numOfImmortals.setColumns(10);
 
+
+
         JButton btnStop = new JButton("STOP");
-        btnStop.setForeground(Color.RED);
+        btnStop.setForeground(Color.BLUE);
+        btnStop.addActionListener(new ActionListener() {
+            public synchronized void actionPerformed(ActionEvent e) {
+                stopSimulation = true;
+                for (Immortal im : immortals) {
+                    im.stopThread(); // Interrumpir cada hilo
+                }
+                JOptionPane.showMessageDialog(null, "Operación detenida");
+            }
+        });
         toolBar.add(btnStop);
+
+
+
+
 
         scrollPane = new JScrollPane();
         contentPane.add(scrollPane, BorderLayout.CENTER);
@@ -142,7 +156,7 @@ public class ControlFrame extends JFrame {
 
     }
 
-    public List<Immortal> setupInmortals() {
+    public synchronized List<Immortal> setupInmortals() {
 
         ImmortalUpdateReportCallback ucb=new TextAreaUpdateReportCallback(output,scrollPane);
         
@@ -150,9 +164,10 @@ public class ControlFrame extends JFrame {
             int ni = Integer.parseInt(numOfImmortals.getText());
 
             List<Immortal> il = new LinkedList<Immortal>();
+            List<Immortal> dl = new LinkedList<Immortal>();
 
             for (int i = 0; i < ni; i++) {
-                Immortal i1 = new Immortal("im" + i, il, DEFAULT_IMMORTAL_HEALTH, DEFAULT_DAMAGE_VALUE,ucb);
+                Immortal i1 = new Immortal("im" + i, il, dl, DEFAULT_IMMORTAL_HEALTH, DEFAULT_DAMAGE_VALUE,ucb);
                 il.add(i1);
             }
             return il;
@@ -170,7 +185,7 @@ class TextAreaUpdateReportCallback implements ImmortalUpdateReportCallback{
     JTextArea ta;
     JScrollPane jsp;
 
-    public TextAreaUpdateReportCallback(JTextArea ta,JScrollPane jsp) {
+    public  TextAreaUpdateReportCallback(JTextArea ta,JScrollPane jsp) {
         this.ta = ta;
         this.jsp=jsp;
     }       
@@ -181,7 +196,7 @@ class TextAreaUpdateReportCallback implements ImmortalUpdateReportCallback{
 
         //move scrollbar to the bottom
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
+            public synchronized void run() {
                 JScrollBar bar = jsp.getVerticalScrollBar();
                 bar.setValue(bar.getMaximum());
             }
