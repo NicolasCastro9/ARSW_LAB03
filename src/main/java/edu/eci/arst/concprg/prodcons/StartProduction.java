@@ -22,8 +22,8 @@ public class StartProduction {
         
         Queue<Integer> queue=new LinkedBlockingQueue<>();
         
-        
-        new Producer(queue,Long.MAX_VALUE).start();
+        // Limite de stock = 5
+        new Producer(queue,5).start();
         
         //let the producer create products for 5 seconds (stock).
         try {

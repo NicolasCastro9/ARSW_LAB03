@@ -23,12 +23,20 @@ public class Consumer extends Thread{
     @Override
     public void run() {
         while (true) {
+                try {
+                    //el consumidor consume muy lentamente ya que tiene un
+                    //periodo de espera de 6 segundos
+                    Thread.sleep(6000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
 
-            if (queue.size() > 0) {
-                int elem=queue.poll();
-                System.out.println("Consumer consumes "+elem);                                
+            synchronized(queue){                
+                if (queue.size() > 0) { 
+                    int elem=queue.poll();
+                    System.out.println("Consumer consumes "+elem);                                
+                }
             }
-            
         }
     }
 }
