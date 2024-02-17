@@ -69,7 +69,7 @@ public class ControlFrame extends JFrame {
 
         final JButton btnStart = new JButton("Start");
         btnStart.addActionListener(new ActionListener() {
-            public synchronized void actionPerformed(ActionEvent e) {
+            public void actionPerformed(ActionEvent e) {
 
                 immortals = setupInmortals();
 
@@ -87,15 +87,17 @@ public class ControlFrame extends JFrame {
 
         JButton btnPauseAndCheck = new JButton("Pause and check");
         btnPauseAndCheck.addActionListener(new ActionListener() {
-            public synchronized void actionPerformed(ActionEvent e) {
-
-                int sum = 0;
-                for (Immortal im : immortals) {
-                    sum += im.getHealth();
-                    im.pause();
+            public  void actionPerformed(ActionEvent e) {
+                synchronized(immortals){
+                    int sum = 0;
+                    for (Immortal im : immortals) {
+                        sum += im.getHealth();
+                        im.pause();
+                    }
+    
+                    statisticsLabel.setText("<html>"+immortals.toString()+"<br>Health sum:"+ sum);
                 }
 
-                statisticsLabel.setText("<html>"+immortals.toString()+"<br>Health sum:"+ sum);
             }
         });
 
@@ -106,11 +108,13 @@ public class ControlFrame extends JFrame {
         JButton btnResume = new JButton("Resume");
 
         btnResume.addActionListener(new ActionListener() {
-            public synchronized void actionPerformed(ActionEvent e) {
-                for(Immortal im: immortals){
-                    im.resumes();
+            public  void actionPerformed(ActionEvent e) {
+                synchronized(immortals){
+                    for(Immortal im: immortals){
+                        im.resumes();
+                    }
                 }
-
+            
             }
         });
 
@@ -129,7 +133,7 @@ public class ControlFrame extends JFrame {
         JButton btnStop = new JButton("STOP");
         btnStop.setForeground(Color.BLUE);
         btnStop.addActionListener(new ActionListener() {
-            public synchronized void actionPerformed(ActionEvent e) {
+            public  void actionPerformed(ActionEvent e) {
                 stopSimulation = true;
                 for (Immortal im : immortals) {
                     im.stopThread(); // Interrumpir cada hilo
@@ -196,7 +200,7 @@ class TextAreaUpdateReportCallback implements ImmortalUpdateReportCallback{
 
         //move scrollbar to the bottom
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
-            public synchronized void run() {
+            public void run() {
                 JScrollBar bar = jsp.getVerticalScrollBar();
                 bar.setValue(bar.getMaximum());
             }
